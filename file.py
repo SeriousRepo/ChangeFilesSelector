@@ -1,24 +1,25 @@
 from difflib import SequenceMatcher
 
-from utils import is_important_string, get_diff_lines, get_file_content
+from utils import is_string_important, get_added_lines_amount, get_removed_lines_amount
+from system_utils import get_split_of_diff_lines, get_file_content, get_file_status
 
 
 class File:
-    def __init__(self, git_path, name, status, commit_id, added_lines_amount, removed_lines_amount):
+    def __init__(self, git_path, name, merge_sha):
         self.name = name
-        self.status_of_file_change = status
-        self.commit_identifier = commit_id
+        self.merge_sha = merge_sha
+        self.status_of_file_change = get_file_status(git_path, self.merge_sha, self.name)
         self.added_lines = []
         if self.is_modified():
-            self.added_lines, self.removed_lines = get_diff_lines(git_path, self.commit_identifier, self.name)
+            self.added_lines, self.removed_lines = get_split_of_diff_lines(git_path, self.merge_sha, self.name)
         if self.is_added():
-            self.added_lines = get_file_content(self.name, self.commit_identifier, git_path)
+            self.added_lines = get_file_content(git_path, self.merge_sha, self.name)
             self.removed_lines = []
         if self.is_deleted():
             self.added_lines = []
-            self.removed_lines = get_file_content(self.name, self.commit_identifier + '^1', git_path)
-        self.added_lines_amount = added_lines_amount
-        self.removed_lines_amount = removed_lines_amount
+            self.removed_lines = get_file_content(git_path, self.merge_sha + '^1', self.name)
+        self.added_lines_amount = get_added_lines_amount(git_path, merge_sha, self.name)
+        self.removed_lines_amount = get_removed_lines_amount(git_path, merge_sha, self.name)
 
     def is_modified(self):
         return self.status_of_file_change == 'M'
@@ -44,10 +45,10 @@ class File:
         is_added_same_as_removed_lines = self.added_lines == file_to_compare.removed_lines
         is_removed_same_as_added_lines = self.removed_lines == file_to_compare.added_lines
 
-        is_moved = is_amount_of_added_equal_to_removed and \
-                   is_amount_of_removed_equal_to_added and \
-                   is_added_same_as_removed_lines and \
-                   is_removed_same_as_added_lines
+        is_moved = is_amount_of_added_equal_to_removed \
+               and is_amount_of_removed_equal_to_added \
+               and is_added_same_as_removed_lines \
+               and is_removed_same_as_added_lines
 
         return is_moved
 
@@ -61,10 +62,10 @@ class File:
         important_removed = []
 
         for added in self.added_lines:
-            if is_important_string(added):
+            if is_string_important(added):
                 important_added.append(added)
         for removed in self.removed_lines:
-            if is_important_string(removed):
+            if is_string_important(removed):
                 important_removed.append(removed)
 
         for added in important_added:
