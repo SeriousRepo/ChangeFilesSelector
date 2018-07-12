@@ -1,7 +1,7 @@
 from difflib import SequenceMatcher
 
 from utils import is_string_important, get_added_lines_amount, get_removed_lines_amount
-from system_utils import get_split_of_diff_lines, get_file_content, get_file_status
+from git_utils import get_split_of_diff_lines, get_file_content, get_file_status
 
 
 class File:

@@ -1,5 +1,5 @@
 from file import File
-from system_utils import get_merges_sha, get_file_names_of_merge, get_file_in_revision
+from git_utils import get_merges_sha, get_file_names_of_merge, get_file_in_revision
 from utils import *
 
 from datetime import datetime
@@ -36,7 +36,8 @@ for git_path in git_paths:
     project_name = git_path.split('/')[-2]
 
     merges_sha = get_merges_sha(git_path, author_name, first_date)
-
+    if not len(merges_sha):
+        continue
     create_directories_tree(merges_sha, destination_path, project_name, month_name)
 
     files = get_all_modified_files(git_path, merges_sha)

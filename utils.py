@@ -2,7 +2,7 @@ from re import match
 from os import system
 from argparse import ArgumentParser
 
-from system_utils import get_diff, get_files_modify_info
+from git_utils import get_diff, get_files_modify_info
 
 
 def parse_arguments():
