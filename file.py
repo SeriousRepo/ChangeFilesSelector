@@ -55,7 +55,7 @@ class File:
     def changes_amount_without_moved_lines(self, moved_lines_amount):
         return self.added_lines_amount - self.removed_lines_amount - 2 * moved_lines_amount
 
-    def has_satisfied_changes(self):
+    def has_satisfied_changes(self, satisfy_lines_amount):
         is_satisfied = False
         moved_lines_counter = 0
         important_added = []
@@ -74,6 +74,6 @@ class File:
                 if s.ratio() > 0.8:
                     moved_lines_counter += 1
                     break
-        if len(important_added) - moved_lines_counter > 7:
+        if len(important_added) - moved_lines_counter > satisfy_lines_amount:
             is_satisfied = True
         return is_satisfied

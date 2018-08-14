@@ -7,9 +7,11 @@ from git_utils import get_diff, get_files_modify_info
 
 def parse_arguments():
     parser = ArgumentParser(description='Create information of significantly modified files by you, depends on git')
-    parser.add_argument('destination_path')
-    parser.add_argument('author_name')
-    parser.add_argument('git_paths')
+    parser.add_argument('git_paths', nargs='+')
+    parser.add_argument('-d', '--destination', help='Where to generate files', type=str, default='.')
+    parser.add_argument('-a', '--author', help='Find changes made by provided author', type=str)
+    parser.add_argument('-c', '--skip-cmakes', help='CMakeList.txt files will be skipped', action='store_true')
+    parser.add_argument('-s', '--skip-small', help='Files with less added lines than provided value will be skipped', type=int)
     return parser.parse_args()
 
 
@@ -41,19 +43,20 @@ def get_files_except_moved(files):
             added_files.append(file)
         if file.is_modified():
             product.append(file)
+    if not deleted_files:
+        return files
 
-    for deleted in deleted_files:
-        for added in added_files:
+    for added in added_files:
+        for deleted in deleted_files:
             if not deleted.is_moved(added) and added not in product:
                 product.append(added)
-
     return product
 
 
-def get_files_contains_enough_changes(files):
+def get_files_contains_enough_changes(files, satisfy_lines_amount):
     satisfied_files = []
     for file in files:
-        if file.has_satisfied_changes():
+        if file.has_satisfied_changes(satisfy_lines_amount):
             satisfied_files.append(file)
 
     return satisfied_files
@@ -82,7 +85,7 @@ def append_added_file_to_diff(file_name, destination_path, project_name, month):
            .format(destination_path, month, project_name))
 
 
-def append_modified_file_to_fidd(git_path, merge_sha, destination_path, project_name, month, file_name):
+def append_modified_file_to_diff(git_path, merge_sha, destination_path, project_name, month, file_name):
     system("echo \'{}\' >> {}/{}/{}/diff"
            .format(get_diff(git_path, merge_sha, file_name), destination_path, month, project_name))
 

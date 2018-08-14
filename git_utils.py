@@ -1,7 +1,13 @@
 from os import popen
 
 
+def retrieve_git_author_email(git_path):
+    return popen('git --git-dir {} config user.email'.format(git_path)).read().splitlines()[0]
+
+
 def get_merges_sha(git_path, author, start_date):
+    if not author:
+        author = retrieve_git_author_email(git_path)
     merge_shas = popen("git --git-dir {} log "
                        "--merges "
                        "--author='{}' "
