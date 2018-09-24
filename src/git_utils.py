@@ -8,13 +8,14 @@ def retrieve_git_author_email(git_path):
 def get_merges_sha(git_path, author, start_date):
     if not author:
         author = retrieve_git_author_email(git_path)
-    merge_shas = popen("git --git-dir {} log "
+
+    merges_sha = popen("git --git-dir {} log "
                        "--merges "
                        "--author='{}' "
                        "--since='{}' "
                        "--pretty=format:%h".format(git_path, author, start_date)
                        ).read().splitlines()
-    return merge_shas
+    return merges_sha
 
 
 def get_split_of_diff_lines(git_path, merge_sha, file_name):
@@ -72,12 +73,11 @@ def get_file_names_of_merge(git_path, merge_sha):
     return names
 
 
-def get_diff(git_path, merge_sha, file_name):
+def get_diff(git_path, merge_sha):
     diff = popen('git --git-dir {0} diff '
-                 '{1}^1:{2} {1}:{2}'.format(git_path,
-                                            merge_sha,
-                                            file_name
-                                            )
+                 '{1}^1 {1}'.format(git_path,
+                                    merge_sha,
+                                    )
                  ).read()
     return diff
 

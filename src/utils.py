@@ -17,9 +17,13 @@ def parse_arguments():
 
 def is_string_important(line):
     is_important = True
-    if line == '':
+    if not line:
         is_important = False
-    if match('^[({)};]+$', line):
+    if line.isspace():
+        is_important = False
+    if match('^[({[<>l\])};]+$', line):
+        is_important = False
+    if 'namespace' in line and 'using' not in line:
         is_important = False
     return is_important
 
@@ -76,21 +80,13 @@ def get_removed_lines_amount(git_path, merge_sha, file_name):
             return info.split()[1]
 
 
-def append_added_file_to_diff(file_name, destination_path, project_name, month):
-    system('echo \'\n----------------------------------------------------------------\' >> {}/{}/{}/diff'
-           .format(destination_path, month, project_name))
-    system("echo \'Added new file - {}\' >> {}/{}/{}/diff"
-           .format(file_name, destination_path, month, project_name))
-    system('echo \'----------------------------------------------------------------\n\' >> {}/{}/{}/diff'
-           .format(destination_path, month, project_name))
-
-
-def append_modified_file_to_diff(git_path, merge_sha, destination_path, project_name, month, file_name):
-    system("echo \'{}\' >> {}/{}/{}/diff"
-           .format(get_diff(git_path, merge_sha, file_name), destination_path, month, project_name))
+def generate_diffs(git_path, merge_shas, destination_path, project, month):
+    for sha in merge_shas:
+        with open('{}/{}/{}/{}/diff'.format(destination_path, month, project, sha), 'w') as file:
+            file.write(get_diff(git_path, sha))
 
 
 def create_directories_tree(merge_shas, destination_path, project, month):
     system('mkdir {}/{}/{}'.format(destination_path, month, project))
-    for idx in merge_shas:
-        system('mkdir {}/{}/{}/{}'.format(destination_path, month, project, idx))
+    for sha in merge_shas:
+        system('mkdir {}/{}/{}/{}'.format(destination_path, month, project, sha))
